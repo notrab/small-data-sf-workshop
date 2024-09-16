@@ -1,4 +1,6 @@
-# Multi-Tenant and Per-User Database Workshop with Turso
+# Small Data SF Workshop (Turso)
+
+Welcome!
 
 ## Welcome and what is Turso (15 minutes)
 
@@ -170,6 +172,20 @@ Slack-like
 - All workspaces share the same schema (users, channels, messages)
 - Data in one workspace is completely separate from other workspaces
 - Schema updates (like adding the `direct_messages` table) apply to all workspaces automatically!
+
+### How does it work?
+
+1. A database can be created and tagged as a "schema" database.
+2. Other databases can be created that reference this schema database.
+3. When a migration is applied to the schema database:
+   - It's first run as a dry-run on the schema and all other associated databases.
+   - If successful, a migration job is created.
+   - Tasks are created for each database that references this schema.
+   - The migration is then applied to each referencing database.
+   - Finally, if all tasks succeed, the migration is applied to the schema database itself.
+4. The process is managed by a scheduler that handles the progression of jobs and tasks through various states (e.g. `WaitingDryRun`, `DryRunSuccess`, `WaitingRun`).
+5. During a migration, all databases are locked to write operations.
+6. Databases refencing a schema are prevented from making direct changes to their schema.
 
 ## Part 2: Per-User Database Schema (30 minutes)
 
