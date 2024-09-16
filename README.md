@@ -180,161 +180,90 @@ Personal Note-Taking Application
 1. Create schema database
 
    ```bash
-   turso db create notes-schema --type schema
+   turso db create todos-schema --type schema
    ```
 
 2. Initialize schema
 
    ```sql
    -- Connect to the schema database
-   turso db shell notes-schema
+   turso db shell todos-schema
 
    -- Create the initial schema
-   CREATE TABLE notes (
-     id INTEGER PRIMARY KEY,
-     title TEXT,
-     content TEXT,
-     created_at TEXT DEFAULT CURRENT_TIMESTAMP
-   );
-
-   CREATE TABLE tags (
-     id INTEGER PRIMARY KEY,
-     name TEXT UNIQUE
-   );
-
-   CREATE TABLE note_tags (
-     note_id INTEGER,
-     tag_id INTEGER,
-     PRIMARY KEY (note_id, tag_id),
-     FOREIGN KEY (note_id) REFERENCES notes(id),
-     FOREIGN KEY (tag_id) REFERENCES tags(id)
+   CREATE TABLE todos (
+       id INTEGER PRIMARY KEY AUTOINCREMENT,
+       description TEXT
    );
 
    -- quit
     .quit
    ```
 
-3. Connect and get schema
+3. Verify the schema
 
    ```bash
-   turso db shell notes-schema ".schema"
+   turso db shell todos-schema ".schema"
    ```
 
-4. Create a child db (represents a single user's database)
+4. Create a platform token
 
    ```bash
-   turso db create user1-notes --schema notes-schema
+   turso auth api-tokens mint <insert-memorable-token-name>
    ```
 
-5. Insert data
+   Store this somewhere as `TURSO_API_TOKEN` for later use.
 
-   ```sql
-   -- Connect to user1-notes
-   turso db shell user1-notes
-
-   -- Insert sample data
-   INSERT INTO notes (title, content) VALUES ('Shopping List', 'Milk, Eggs, Bread');
-   INSERT INTO tags (name) VALUES ('Personal');
-   INSERT INTO note_tags (note_id, tag_id) VALUES (1, 1);
-
-   -- quit
-    .quit
-   ```
-
-6. Fetch data
-
-   ```sql
-   SELECT * FROM notes;
-   SELECT * FROM tags;
-   SELECT * FROM note_tags;
-
-   -- quit
-    .quit
-   ```
-
-7. Create a second db (represents another user's database)
+5. Create a group token
 
    ```bash
-   turso db create user2-notes --schema notes-schema
+   turso group tokens create <group-name>
    ```
 
-8. Fetch data (notice there's nothing, because it's per user)
+   Store this somewhere as `TURSO_GROUP_AUTH_TOKEN` for later use.
 
-   ```sql
-   -- Connect to user2-notes
-   turso db shell user2-notes
+6. Sign up to Clerk and create a new application
 
-   SELECT * FROM notes;
-   SELECT * FROM tags;
-   SELECT * FROM note_tags;
+   Visit [Clerk](https://clerk.dev) and sign up.
 
-   -- quit
-    .quit
+   Create a new application and store the public and secret keys as `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and `CLERK_SECRET_KEY`.
+
+7. Retrieve your account slug
+
+   ```bash
+   turso auth whoami
    ```
 
-9. Update the parent schema with a new table
+   Store this somewhere as `TURSO_ORG` for later use.
 
-   ```sql
-   -- Connect to notes-schema
-   turso db shell notes-schema
+8. Deploy to Vercel
 
-   -- Add a new table
-   CREATE TABLE reminders (
-     id INTEGER PRIMARY KEY,
-     note_id INTEGER,
-     reminder_time TEXT,
-     FOREIGN KEY (note_id) REFERENCES notes(id)
-   );
+   [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fnotrab%2Fturso-per-user-starter&env=NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,CLERK_SECRET_KEY,TURSO_API_TOKEN,TURSO_ORG,TURSO_DATABASE_NAME,TURSO_GROUP_AUTH_TOKEN&demo-title=Turso%20Per%20User%20Starter&demo-description=Create%20a%20database%20per%20user&demo-image=https://raw.githubusercontent.com/notrab/turso-per-user-starter/28373b4c9c74f814e3749525ee3d53b603176834/app/opengraph-image.png&demo-url=https%3A%2F%2Fturso-per-user-starter.vercel.app)
 
-   -- quit
-    .quit
-   ```
+9. Sign into your new app and create some todos
 
-10. Connect to a child db again to see the schema changes
+   Visit the newly deployed app on Vercel and create some todos.
+
+   💡 **Bonus: Share the URL with others so that they can sign up and create some todos.**
+
+10. Retrieve a list of child databases for the parent schema
 
     ```bash
-    turso db shell user1-notes ".schema"
+    turso db list --schema todos-schema
     ```
 
-11. Insert new data
+11. Connect to a child database and fetch the todos
+
+    Copy a database name from the list of child databases.
+
+    ```bash
+    turso db shell <database-name>
+    ```
 
     ```sql
-    -- Connect to user1-notes
-    turso db shell user1-notes
-
-    INSERT INTO reminders (note_id, reminder_time)
-    VALUES (1, '2023-09-15 10:00:00');
+    select * from todos;
     ```
 
-## Part 3: Deploy your own per-user application (30 minutes)
-
-Deploy your own Turso powered platform in a few easy steps...
-
-- [![Create a Database](https://sqlite.new/button)](https://sqlite.new?dump=https%3A%2F%2Fraw.githubusercontent.com%2Fnotrab%2Fturso-per-user-starter%2Fmain%2Fdump.sql&type=schema)
-
-  - Once the database is created, you'll be presented with details about your database, and **Connect** details
-  - Note down the following (you'll need these later):
-    - Database name
-    - Org name
-    - Group Token (**Create Group Token** -> **Create Token**)
-    - Platform API Token (**Create Platform API Token** -> **Insert memorable name** -> **Create Token**))
-
-- [Sign up to Clerk](https://clerk.com)
-  - Create a new application from the dashboard
-  - Note down the following (you'll need these later):
-    - Public key
-    - Secret key
-- [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fnotrab%2Fturso-per-user-starter&env=NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,CLERK_SECRET_KEY,TURSO_API_TOKEN,TURSO_ORG,TURSO_DATABASE_NAME,TURSO_GROUP_AUTH_TOKEN&demo-title=Turso%20Per%20User%20Starter&demo-description=Create%20a%20database%20per%20user&demo-image=https://raw.githubusercontent.com/notrab/turso-per-user-starter/28373b4c9c74f814e3749525ee3d53b603176834/app/opengraph-image.png&demo-url=https%3A%2F%2Fturso-per-user-starter.vercel.app)
-  - Add the following environment variables (from the details you noted down earlier):
-    - `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` - Clerk public key
-    - `CLERK_SECRET_KEY` - Clerk secret key
-    - `TURSO_API_TOKEN` - Platform API Token
-    - `TURSO_ORG` - Org name
-    - `TURSO_DATABASE_NAME` - Database name
-    - `TURSO_GROUP_AUTH_TOKEN` - Group Token
-  - Click **Deploy** and you're done!
-
-## Part 4: AI & Embeddings
+## Part 4
 
 Todo
 
