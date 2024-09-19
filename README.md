@@ -215,7 +215,8 @@ Personal Note-Taking Application
    -- Create the initial schema
    CREATE TABLE todos (
        id INTEGER PRIMARY KEY AUTOINCREMENT,
-       description TEXT
+       `description` text NOT NULL,
+       `completed` integer DEFAULT false NOT NULL
    );
 
    -- Verify the schema
