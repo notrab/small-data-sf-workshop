@@ -55,7 +55,7 @@ Slack-like
    .quit
    ```
 
-3. Connect and get schema
+3. Confirm schema in a new temporary shell
 
    ```bash
    turso db shell slack-schema ".schema"
@@ -82,9 +82,6 @@ Slack-like
 
    INSERT INTO messages (channel_id, user_id, content)
    VALUES (1, 1, 'Hello, welcome to our new Slack workspace!');
-
-   -- quit
-   .quit
    ```
 
 6. Fetch data
@@ -118,10 +115,10 @@ Slack-like
     .quit
    ```
 
-9. Update the parent schema with a new table
+> [!IMPORTANT]
+> Run `turso db show slack-schema --http-url` to get the HTTP URL for the schema database for use in the next step.
 
-   > [!IMPORTANT]
-   > Run `turso db show slack-schema --http-url` to get the HTTP URL for the schema database.
+9. Update the parent schema with a new table
 
    ```sql
    -- Connect to slack-schema
@@ -162,8 +159,18 @@ Slack-like
     INSERT INTO direct_messages (sender_id, recipient_id, content)
     VALUES (1, 2, 'Hi Bob, welcome to the team!');
 
+    -- Select all direct messages
+    SELECT * FROM direct_messages;
+
     -- quit
     .quit
+    ```
+
+12. Connect to another child to confirm `direct_messages` table exists, but not messages
+
+    ```bash
+    turso db shell workspace2-slack ".schema"
+    turso db shell workspace2-slack "SELECT * FROM direct_messages"
     ```
 
 ### What did we learn?
@@ -211,17 +218,14 @@ Personal Note-Taking Application
        description TEXT
    );
 
+   -- Verify the schema
+   .schema
+
    -- quit
     .quit
    ```
 
-3. Verify the schema
-
-   ```bash
-   turso db shell todos-schema ".schema"
-   ```
-
-4. Create a platform token
+3. Create a platform token
 
    ```bash
    turso auth api-tokens mint <insert-memorable-token-name>
@@ -229,7 +233,9 @@ Personal Note-Taking Application
 
    Store this somewhere as `TURSO_API_TOKEN` for later use.
 
-5. Create a group token
+4. Create a group token
+
+   The `<group-name>` is usually `default` if Turso created one for your automatically in Part 1.
 
    ```bash
    turso group tokens create <group-name>
@@ -237,13 +243,13 @@ Personal Note-Taking Application
 
    Store this somewhere as `TURSO_GROUP_AUTH_TOKEN` for later use.
 
-6. Sign up to Clerk and create a new application
+5. Sign up to Clerk and create a new application
 
    Visit [Clerk](https://clerk.dev) and sign up.
 
    Create a new application and store the public and secret keys as `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and `CLERK_SECRET_KEY`.
 
-7. Retrieve your account slug
+6. Retrieve your account slug
 
    ```bash
    turso auth whoami
@@ -251,23 +257,23 @@ Personal Note-Taking Application
 
    Store this somewhere as `TURSO_ORG` for later use.
 
-8. Deploy to Vercel
+7. Deploy to Vercel
 
    [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fnotrab%2Fturso-per-user-starter&env=NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,CLERK_SECRET_KEY,TURSO_API_TOKEN,TURSO_ORG,TURSO_DATABASE_NAME,TURSO_GROUP_AUTH_TOKEN&demo-title=Turso%20Per%20User%20Starter&demo-description=Create%20a%20database%20per%20user&demo-image=https://raw.githubusercontent.com/notrab/turso-per-user-starter/28373b4c9c74f814e3749525ee3d53b603176834/app/opengraph-image.png&demo-url=https%3A%2F%2Fturso-per-user-starter.vercel.app)
 
-9. Sign into your new app and create some todos
+8. Sign into your new app and create some todos
 
    Visit the newly deployed app on Vercel and create some todos.
 
    💡 **Bonus: Share the URL with others so that they can sign up and create some todos.**
 
-10. Retrieve a list of child databases for the parent schema
+9. Retrieve a list of child databases for the parent schema
 
-    ```bash
-    turso db list --schema todos-schema
-    ```
+   ```bash
+   turso db list --schema todos-schema
+   ```
 
-11. Connect to a child database and fetch the todos
+10. Connect to a child database and fetch the todos
 
     Copy a database name from the list of child databases.
 
