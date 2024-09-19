@@ -286,6 +286,17 @@ Personal Note-Taking Application
     select * from todos;
     ```
 
+11. Download your users data
+
+    When logged into the todo app, click on your user avatar and select "Download my data".
+
+### What did we learn?
+
+- Each User account has its own isolated database
+- All user share the same schema (`todos`)
+- Data for one user is completely separate from other users
+- Users can download their own data
+
 ## Part 4
 
 Todo
