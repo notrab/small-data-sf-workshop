@@ -297,11 +297,11 @@ Personal Note-Taking Application
 - Data for one user is completely separate from other users
 - Users can download their own data
 
-## Part 4
+## Part 3: AI & Embeddings
 
 Todo
 
-## Part 5: Q&A
+## Q&A
 
 - Ask us anything!
 - Discount codes
