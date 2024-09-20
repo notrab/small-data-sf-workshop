@@ -299,7 +299,110 @@ Personal Note-Taking Application
 
 ## Part 3: AI & Embeddings
 
-Todo
+1. Set up the database schema:
+
+```sql
+CREATE TABLE IF NOT EXISTS movies (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  title TEXT NOT NULL,
+  year INTEGER NOT NULL,
+  plot_summary TEXT,
+  genres TEXT,
+  embedding F32_BLOB(1024) -- Assuming 1024-dimensional embeddings
+);
+
+-- Create index if it doesn't exist
+CREATE INDEX IF NOT EXISTS movies_embedding_idx ON movies(libsql_vector_idx(embedding));
+```
+
+2. Install necessary libraries:
+
+```bash
+npm install @libsql/client @xenova/transformers
+```
+
+3. Set up the database client:
+
+```ts
+import { createClient } from "@libsql/client";
+
+const client = createClient({
+  url: "YOUR_LIBSQL_URL",
+  authToken: "YOUR_AUTH_TOKEN",
+});
+```
+
+4. Function to insert a movie:
+
+```ts
+async function insertMovie(
+  title: string,
+  year: number,
+  plotSummary: string,
+  genres: string[],
+) {
+  const query =
+    "INSERT INTO movies (title, year, plot_summary, genres) VALUES (?, ?, ?, ?)";
+
+  await client.execute({
+    sql: query,
+    args: [title, year, plotSummary, genres.join(",")],
+  });
+}
+```
+
+5. Generate embeddings using Mixedbread:
+
+```ts
+import { pipeline } from "@xenova/transformers";
+
+async function generateEmbedding(text: string): Promise<number[]> {
+  const model = await pipeline(
+    "feature-extraction",
+    "mixedbread-ai/mxbai-embed-large-v1",
+  );
+  const output = await model([text], { pooling: "cls", normalize: true });
+  return output.tolist()[0];
+}
+```
+
+6. Update movie with embedding:
+
+```ts
+async function updateMovieEmbedding(movieId: number, embedding: number[]) {
+  const query = "UPDATE movies SET embedding = vector32(?) WHERE id = ?";
+  await client.execute(query, [JSON.stringify(embedding), movieId]);
+}
+```
+
+## Retrieving Movie Recommendations
+
+```ts
+async function getMovieRecommendations(
+  query: string,
+  topK: number = 5,
+): Promise<any[]> {
+  const queryEmbedding = await generateEmbedding(query);
+
+  const sql = `
+    SELECT movies.id, movies.title, movies.year, movies.genres
+    FROM vector_top_k('movies_embedding_idx', vector32(?), ?) AS v
+    JOIN movies ON movies.id = v.id
+    ORDER BY v.distance
+  `;
+
+  try {
+    const result = await client.execute({
+      sql,
+      args: [JSON.stringify(queryEmbedding), topK],
+    });
+
+    return result.rows;
+  } catch (error) {
+    throw error;
+  }
+}
+```
 
 ## Q&A
 
