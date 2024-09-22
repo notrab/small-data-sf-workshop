@@ -2,11 +2,11 @@
 
 Welcome!
 
-## Welcome and what is Turso (15 minutes)
+## 1. Welcome and what is Turso (15 minutes)
 
 Todo
 
-## Part 1: Per-Tenant Database Schema - Slack-like Application (45 minutes)
+## 2: Per-Tenant Database Schema - Slack-like Application (45 minutes)
 
 Slack-like
 
@@ -194,7 +194,7 @@ Slack-like
 5. During a migration, all databases are locked to write operations.
 6. Databases refencing a schema are prevented from making direct changes to their schema.
 
-## Part 2: Per-User Database Schema (30 minutes)
+## 3: Per-User Database Schema (30 minutes)
 
 Personal Note-Taking Application
 
@@ -297,111 +297,66 @@ Personal Note-Taking Application
 - Data for one user is completely separate from other users
 - Users can download their own data
 
-## Part 3: AI & Embeddings
+## 4: AI & Embeddings
 
-1. Set up the database schema:
+In this part, we'll create a system that recommends songs based on mood using vector embeddings.
+
+1. Create a database using the CLI just like we learned in part 1 & 2.
+2. Connect to the database just like we learned in part 1 & 2.
+
+3. Set up the database schema:
 
 ```sql
-CREATE TABLE IF NOT EXISTS movies (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  title TEXT NOT NULL,
-  year INTEGER NOT NULL,
-  plot_summary TEXT,
-  genres TEXT,
-  embedding F32_BLOB(1024) -- Assuming 1024-dimensional embeddings
+CREATE TABLE IF NOT EXISTS songs (
+  title TEXT,
+  artist TEXT,
+  lyrics TEXT,
+  mood_embedding F32_BLOB(5)  -- 5-dimensional f32 vector
 );
 
--- Create index if it doesn't exist
-CREATE INDEX IF NOT EXISTS movies_embedding_idx ON movies(libsql_vector_idx(embedding));
+CREATE INDEX IF NOT EXISTS songs_mood_idx ON songs(libsql_vector_idx(mood_embedding));
 ```
 
-2. Install necessary libraries:
+4. Insert sample songs with mood embeddings:
 
-```bash
-npm install @libsql/client @xenova/transformers
+```sql
+INSERT INTO songs (title, artist, lyrics, mood_embedding)
+VALUES ('Happy', 'Pharrell Williams', 'Clap along if you feel like happiness is the truth', vector32('[0.5,0,0.5,0,0]'));
+
+INSERT INTO songs (title, artist, lyrics, mood_embedding)
+VALUES ('Sad Song', 'We The Kings', 'You and I, we''re like fireworks and symphonies exploding in the sky', vector32('[0,1,0,0,0]'));
+
+INSERT INTO songs (title, artist, lyrics, mood_embedding)
+VALUES ('Calm Down', 'Taylor Swift', 'You need to calm down, you''re being too loud', vector32('[0,0,0,1,0]'));
+
+INSERT INTO songs (title, artist, lyrics, mood_embedding)
+VALUES ('Killing in the Name', 'Rage Against the Machine', 'Some of those that work forces, are the same that burn crosses', vector32('[0,0,0,0,1]'));
 ```
 
-3. Set up the database client:
+5. Query for song recommendations based on mood:
 
-```ts
-import { createClient } from "@libsql/client";
+For a happy mood:
 
-const client = createClient({
-  url: "YOUR_LIBSQL_URL",
-  authToken: "YOUR_AUTH_TOKEN",
-});
+```sql
+SELECT title, artist
+FROM vector_top_k('songs_mood_idx', vector32('[0.7,0.1,0.1,0.05,0.05]'), 3)
+JOIN songs ON songs.rowid = id;
 ```
 
-4. Function to insert a movie:
+For a calm mood:
 
-```ts
-async function insertMovie(
-  title: string,
-  year: number,
-  plotSummary: string,
-  genres: string[],
-) {
-  const query =
-    "INSERT INTO movies (title, year, plot_summary, genres) VALUES (?, ?, ?, ?)";
-
-  await client.execute({
-    sql: query,
-    args: [title, year, plotSummary, genres.join(",")],
-  });
-}
+```sql
+SELECT title, artist
+FROM vector_top_k('songs_mood_idx', vector32('[0.1,0.1,0.1,0.6,0.1]'), 3)
+JOIN songs ON songs.rowid = id;
 ```
 
-5. Generate embeddings using Mixedbread:
+For an angry mood:
 
-```ts
-import { pipeline } from "@xenova/transformers";
-
-async function generateEmbedding(text: string): Promise<number[]> {
-  const model = await pipeline(
-    "feature-extraction",
-    "mixedbread-ai/mxbai-embed-large-v1",
-  );
-  const output = await model([text], { pooling: "cls", normalize: true });
-  return output.tolist()[0];
-}
-```
-
-6. Update movie with embedding:
-
-```ts
-async function updateMovieEmbedding(movieId: number, embedding: number[]) {
-  const query = "UPDATE movies SET embedding = vector32(?) WHERE id = ?";
-  await client.execute(query, [JSON.stringify(embedding), movieId]);
-}
-```
-
-## Retrieving Movie Recommendations
-
-```ts
-async function getMovieRecommendations(
-  query: string,
-  topK: number = 5,
-): Promise<any[]> {
-  const queryEmbedding = await generateEmbedding(query);
-
-  const sql = `
-    SELECT movies.id, movies.title, movies.year, movies.genres
-    FROM vector_top_k('movies_embedding_idx', vector32(?), ?) AS v
-    JOIN movies ON movies.id = v.id
-    ORDER BY v.distance
-  `;
-
-  try {
-    const result = await client.execute({
-      sql,
-      args: [JSON.stringify(queryEmbedding), topK],
-    });
-
-    return result.rows;
-  } catch (error) {
-    throw error;
-  }
-}
+```sql
+SELECT title, artist
+FROM vector_top_k('songs_mood_idx', vector32('[0.05,0.05,0.1,0.1,0.7]'), 3)
+JOIN songs ON songs.rowid = id;
 ```
 
 ## Q&A
