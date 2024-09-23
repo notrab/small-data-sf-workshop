@@ -1,8 +1,6 @@
-# Part 2
+# Per Tenant Task
 
 Slack-like per tenant database schema and application.
-
-## Task
 
 1. Create schema database
 

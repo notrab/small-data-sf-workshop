@@ -1,8 +1,6 @@
-# Part 3
+# Per User Task
 
 Per-user database schema and application.
-
-## Task
 
 1. Create schema database
 
