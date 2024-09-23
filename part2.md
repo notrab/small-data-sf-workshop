@@ -61,13 +61,22 @@ Slack-like per tenant database schema and application.
    turso db create workspace1-slack --schema slack-schema
    ```
 
-5. Insert data
+5. Connect to the child database and see the schema from `slack-schema` database!
+
+   ```bash
+   turso db shell workspace1-slack
+   ```
 
    ```sql
-   -- Connect to workspace1-slack
-   turso db shell workspace1-slack
+   .schema
+   ```
 
-   -- Insert sample data
+> [!NOTE]
+> Woah! You just created a database with schema of another database!
+
+6. Insert sample data
+
+   ```sql
    INSERT INTO users (username, email, display_name)
    VALUES ('alice', 'alice@company1.com', 'Alice Johnson');
 
@@ -78,7 +87,7 @@ Slack-like per tenant database schema and application.
    VALUES (1, 1, 'Hello, welcome to our new Slack workspace!');
    ```
 
-6. Fetch data
+7. Fetch data
 
    ```sql
    SELECT * FROM users;
@@ -89,51 +98,61 @@ Slack-like per tenant database schema and application.
     .quit
    ```
 
-7. Create a second db (represents another Slack workspace)
+8. Create a second db (represents another Slack workspace)
 
    ```bash
    turso db create workspace2-slack --schema slack-schema
    ```
 
-8. Fetch data (notice there's nothing, because it's per workspace)
+9. Connect to the second child database and see the schema from `slack-schema` database!
+
+   ```bash
+   turso db shell workspace2-slack
+   ```
 
    ```sql
-   -- Connect to workspace2-slack
-   turso db shell workspace2-slack
-
-   SELECT * FROM users;
-   SELECT * FROM channels;
-   SELECT * FROM messages;
-
-   -- quit
-    .quit
+   .schema
    ```
+
+10. Fetch data (notice there's nothing, because it's per workspace)
+
+    ```sql
+    SELECT * FROM users;
+    SELECT * FROM channels;
+    SELECT * FROM messages;
+
+    -- quit
+     .quit
+    ```
 
 > [!IMPORTANT]
 > Run `turso db show slack-schema --http-url` to get the HTTP URL for the schema database for use in the next step.
 
-9. Update the parent schema with a new table
+9. Connect to the parent schema database
 
-   ```sql
-   -- Connect to slack-schema
+   ```bash
    turso db shell <http-url>
-
-   -- Add a new table for direct messages
-   CREATE TABLE direct_messages (
-     id INTEGER PRIMARY KEY,
-     sender_id INTEGER,
-     recipient_id INTEGER,
-     content TEXT,
-     created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-     FOREIGN KEY (sender_id) REFERENCES users(id),
-     FOREIGN KEY (recipient_id) REFERENCES users(id)
-   );
-
-   -- quit
-   .quit
    ```
 
-10. Connect to a child db again to see the schema changes
+10. Update the parent schema with a new table
+
+    ```sql
+    -- Add a new table for direct messages
+    CREATE TABLE direct_messages (
+      id INTEGER PRIMARY KEY,
+      sender_id INTEGER,
+      recipient_id INTEGER,
+      content TEXT,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (sender_id) REFERENCES users(id),
+      FOREIGN KEY (recipient_id) REFERENCES users(id)
+    );
+
+    -- quit
+    .quit
+    ```
+
+11. Connect to a child db again to see the schema changes
 
     ```bash
     turso db shell workspace1-slack ".schema"
@@ -151,6 +170,9 @@ Slack-like per tenant database schema and application.
     -- Add another user
     INSERT INTO users (username, email, display_name)
     VALUES ('bob', 'bob@company1.com', 'Bob Smith');
+
+    INSERT INTO users (username, email, display_name)
+    VALUES ('alice', 'alice@company1.com', 'Alice Johnson');
 
     -- Insert a direct message
     INSERT INTO direct_messages (sender_id, recipient_id, content)
