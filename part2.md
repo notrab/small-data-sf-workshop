@@ -139,6 +139,9 @@ Slack-like per tenant database schema and application.
     turso db shell workspace1-slack ".schema"
     ```
 
+> [!NOTE]
+> Congratulations! You just propogated a schema change to all child databases.
+
 11. Insert new data
 
     ```sql
@@ -196,6 +199,9 @@ Slack-like per tenant database schema and application.
 16. Deploy to Vercel
 
     [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fnotrab%2Fturso-per-tenant-starter&env=TURSO_API_TOKEN,TURSO_ORG,TURSO_DATABASE_NAME,TURSO_GROUP_AUTH_TOKEN)
+
+> [!NOTE]
+> Congratulations! You just deployed a Slack-like app with per tenant database schema.
 
 17. Sign into your new app and create some messages in one of the workspaces created above.
 
