@@ -10,6 +10,8 @@ Per-user database schema and application.
    turso db create todos-schema --type schema
    ```
 
+   Store the name `todos-schema` as `TURSO_DATABASE_NAME` for later use.
+
 2. Initialize schema
 
    ```sql

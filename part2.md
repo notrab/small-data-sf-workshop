@@ -10,6 +10,8 @@ Slack-like per tenant database schema and application.
    turso db create slack-schema --type schema
    ```
 
+   Store the name `slack-schema` as `TURSO_DATABASE_NAME` for later use.
+
 2. Initialize schema
 
    ```sql
@@ -164,3 +166,37 @@ Slack-like per tenant database schema and application.
     turso db shell workspace2-slack ".schema"
     turso db shell workspace2-slack "SELECT * FROM direct_messages"
     ```
+
+13. Create a platform token
+
+    ```bash
+    turso auth api-tokens mint <insert-memorable-token-name>
+    ```
+
+    Store this somewhere as `TURSO_API_TOKEN` for later use.
+
+14. Create a group token
+
+    The `<group-name>` is usually `default` unless you specified otherwise when creating a database earlier.
+
+    ```bash
+    turso group tokens create <group-name>
+    ```
+
+    Store this somewhere as `TURSO_GROUP_AUTH_TOKEN` for later use.
+
+15. Retrieve your account slug
+
+    ```bash
+    turso auth whoami
+    ```
+
+    Store this somewhere as `TURSO_ORG` for later use.
+
+16. Deploy to Vercel
+
+    [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fnotrab%2Fturso-per-tenant-starter&env=TURSO_API_TOKEN,TURSO_ORG,TURSO_DATABASE_NAME,TURSO_GROUP_AUTH_TOKEN)
+
+17. Sign into your new app and create some messages in one of the workspaces created above.
+
+    You can login into multiple workspaces by entering any username into the login form.
