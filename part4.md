@@ -4,8 +4,17 @@ Use Turso's vector datatype to store and retrieve embeddings.
 
 ## Task
 
-1. Create a database using the CLI just like we learned in part 2 & 3.
-2. Connect to the database just like we learned in part 2 & 3.
+1. Create a database
+
+   ```bash
+   turso db create songs
+   ```
+
+2. Connect to the database
+
+   ```bash
+   turso db shell songs
+   ```
 
 3. Set up the database schema:
 
