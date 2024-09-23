@@ -10,12 +10,15 @@ Slack-like per tenant database schema and application.
 
    Store the name `slack-schema` as `TURSO_DATABASE_NAME` for later use.
 
-2. Initialize schema
+2. Connect to the schema database
+
+   ```bash
+   turso db shell slack-schema
+   ```
+
+3. Initialize schema
 
    ```sql
-   -- Connect to the schema database
-   turso db shell slack-schema
-
    -- Create the initial schema
    CREATE TABLE users (
      id INTEGER PRIMARY KEY,
@@ -47,19 +50,19 @@ Slack-like per tenant database schema and application.
    .quit
    ```
 
-3. Confirm schema in a new temporary shell
+4. Confirm schema in a new temporary shell
 
    ```bash
    turso db shell slack-schema ".schema"
    ```
 
-4. Create a child db (represents a Slack workspace)
+5. Create a child db (represents a Slack workspace)
 
    ```bash
    turso db create workspace1-slack --schema slack-schema
    ```
 
-5. Connect to the child database and see the schema from `slack-schema` database!
+6. Connect to the child database and see the schema from `slack-schema` database!
 
    ```bash
    turso db shell workspace1-slack
